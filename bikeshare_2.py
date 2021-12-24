@@ -48,8 +48,13 @@ def get_filters():
                 print('*' * 40)
                 print('Please select valid option from 1 to 3')
                 print('*' * 40)
-            city = cities[city_id]
+            else:
+                city = cities[city_id]
         except ValueError as e:
+            print('*' * 40)
+            print('Please select valid option from 1 to 3')
+            print('*' * 40)
+        except KeyError as e:
             print('*' * 40)
             print('Please select valid option from 1 to 3')
             print('*' * 40)
@@ -188,7 +193,8 @@ def station_stats(df):
     trips_by_both_stations = df.groupby(['Start Station', 'End Station']).count()
     trips_by_both_stations['Both Location Count'] = trips_by_both_stations['Start Time']
     most_common_both_stations = trips_by_both_stations[
-        trips_by_both_stations['Both Location Count'] == trips_by_both_stations['Both Location Count'].max()].index.values[0]
+        trips_by_both_stations['Both Location Count'] == trips_by_both_stations[
+            'Both Location Count'].max()].index.values[0]
     print('Most Common Combination Of Stations:', most_common_both_stations)
 
     print("\nThis took %s seconds." % (time.time() - start_time))
@@ -250,11 +256,48 @@ def user_stats(df):
         # create column for country by year of birth
         df_by_year['Count By Year Of Birth'] = df_by_year['Start Time']
         # return the index of max for column count by birth of year
-        most_common = df_by_year[df_by_year['Count By Year Of Birth'] == df_by_year['Count By Year Of Birth'].max()].index.values[0]
+        most_common = \
+            df_by_year[df_by_year['Count By Year Of Birth'] == df_by_year['Count By Year Of Birth'].max()].index.values[
+                0]
         print('Most Common Year Of Birth:', str(int(most_common)))
 
     print("\nThis took %s seconds." % (time.time() - start_time))
     print('-' * 40)
+
+
+def raw_data(df):
+    """
+    :param df: refers to pandas DataFrame
+    :actions: ask the user if they want to see 5 lines of raw data, Display that data if the answer is 'yes',
+    Continue iterating these prompts and displaying the next 5 lines of raw data at each iteration,
+    Stop the program when the user says 'no' or there is no more raw data to display.
+    :return: nothing
+    """
+    choice = 'yes'
+    start = 1
+    while choice == 'yes':
+        # Promoting the user if they want to see 5 lines of raw data
+        # Then changing it to lower to disable case sensitive data
+        print('Do you want to see 5 raw lines?!')
+        choice = str(input('[Y]es or [N]o?:\t')).lower()
+        if choice in ['yes', 'y']:
+            # change choice to 'yes' although if he choose Y
+            choice = 'yes'
+            df_count = df['Start Time'].count()
+            """
+            check if the last index of filtering <= data frame count
+            then it print the data
+            if the last index > data frame count
+            then it print the remaining data
+            """
+            if start + 5 <= df_count:
+                print('Printing Data From: ' + str(start) + ' To: ' + str(start + 5) + ' Of: ' + str(df_count))
+                print(df.iloc[start: start + 5])
+                start += 6
+            else:
+                print('Printing Data From: ' + str(start) + ' To: ' + str(df_count) + ' Of: ' + str(df_count))
+                print(df.iloc[start: df_count + 1])
+                choice = 'no'
 
 
 def main():
@@ -270,6 +313,7 @@ def main():
         station_stats(df)
         trip_duration_stats(df)
         user_stats(df)
+        raw_data(df)
         restart = input('\nWould you like to restart? Enter yes or no.\n')
         if restart.lower() != 'yes':
             break
